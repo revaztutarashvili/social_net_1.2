@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 public class ReqresUser {
     private Long id;
-    @JsonProperty("email")
     private String email;
     @JsonProperty("first_name")
     private String firstName;

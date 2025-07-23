@@ -1,22 +1,19 @@
 package com.socialplatformapi.service;
 
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+
+import com.socialplatformapi.client.ReqresClient;
 import com.socialplatformapi.dto.external.ReqresResponse;
 import com.socialplatformapi.dto.external.ReqresUser;
 import com.socialplatformapi.model.User;
 import com.socialplatformapi.repository.UserRepository;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -29,12 +26,8 @@ public class ReqresService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RestTemplate restTemplate;
+    private final ReqresClient reqresClient;
 
-    @Value("${reqres.api.url:https://reqres.in/api/users}")
-    private String reqresApiUrl;
-
-    // აქ ჩავწერე უფასო API გასაღები რომლის გარეშეც არ იღებდა რექუესტს საიტი
     @Value("${reqres.api.key:reqres-free-v1}")
     private String reqresApiKey;
 
@@ -45,28 +38,15 @@ public class ReqresService {
         try {
             log.info("Fetching users from reqres.in...");
 
-            // რექრესის საიტის მოთხოვნის მიხედვით შევქმენი HTTP ჰედერები და დავამატეთ API გასაღები რომ რექვესთის გაგზავნა შეგვძლებოდა
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("x-api-key", reqresApiKey);
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            // 2. პირველი გვერდის მოთხოვნა exchange მეთოდით
-            ResponseEntity<ReqresResponse> responseEntity = restTemplate.exchange(
-                    reqresApiUrl, HttpMethod.GET, entity, ReqresResponse.class);
-
-            ReqresResponse response = responseEntity.getBody();
+            // პირველი გვერდის მოთხოვნა
+            ReqresResponse response = reqresClient.getUsers(reqresApiKey, null);
 
             if (response != null && response.getData() != null) {
                 saveReqresUsers(response.getData());
 
-                // 3. აქ ვაკეთებ დარჩენილი გვერდების მოთხოვნას
+                // დარჩენილი გვერდების მოთხოვნა
                 for (int page = 2; page <= response.getTotalPages(); page++) {
-                    String pageUrl = reqresApiUrl + "?page=" + page;
-
-                    ResponseEntity<ReqresResponse> pageResponseEntity = restTemplate.exchange(
-                            pageUrl, HttpMethod.GET, entity, ReqresResponse.class);
-
-                    ReqresResponse pageResponse = pageResponseEntity.getBody();
+                    ReqresResponse pageResponse = reqresClient.getUsers(reqresApiKey, page);
 
                     if (pageResponse != null && pageResponse.getData() != null) {
                         saveReqresUsers(pageResponse.getData());
@@ -89,10 +69,10 @@ public class ReqresService {
                     User user = new User();
                     user.setFirstName(reqresUser.getFirstName())
                             .setLastName(reqresUser.getLastName())
-                            .setUsername(reqresUser.getEmail()) // email-ს გამოვიყენებ username-ად როგორც ლევანმა გვითხრა
+                            .setUsername(reqresUser.getEmail()) //როგორც იყო მოთხოვნაში
                             .setEmail(reqresUser.getEmail())
-                            .setBirthDate(LocalDate.now().minusYears(18)) // დროებითი birth date;
-                           .setPassword(passwordEncoder.encode("jgufuridavaleba6")); // დროებითი პაროლი;
+                            .setBirthDate(LocalDate.now().minusYears(18)) //დროებითი birthdate;
+                            .setPassword(passwordEncoder.encode("jgufuridavaleba6")); // დროებითი პაროლი
 
                     userRepository.save(user);
                     reqresUserIds.add(user.getId());
