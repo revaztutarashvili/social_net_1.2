@@ -9,7 +9,6 @@ import com.socialplatformapi.repository.UserRepository;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,10 +26,6 @@ public class ReqresService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ReqresClient reqresClient;
-
-    @Value("${reqres.api.key:reqres-free-v1}")
-    private String reqresApiKey;
-
     private final List<Long> reqresUserIds = new ArrayList<>();
 
     @EventListener(ApplicationReadyEvent.class)
@@ -39,14 +34,14 @@ public class ReqresService {
             log.info("Fetching users from reqres.in...");
 
             // პირველი გვერდის მოთხოვნა
-            ReqresResponse response = reqresClient.getUsers(reqresApiKey, null);
+            ReqresResponse response = reqresClient.getUsers(null);
 
             if (response != null && response.getData() != null) {
                 saveReqresUsers(response.getData());
 
                 // დარჩენილი გვერდების მოთხოვნა
                 for (int page = 2; page <= response.getTotalPages(); page++) {
-                    ReqresResponse pageResponse = reqresClient.getUsers(reqresApiKey, page);
+                    ReqresResponse pageResponse = reqresClient.getUsers(page);
 
                     if (pageResponse != null && pageResponse.getData() != null) {
                         saveReqresUsers(pageResponse.getData());
