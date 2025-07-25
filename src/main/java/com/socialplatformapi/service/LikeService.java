@@ -1,5 +1,6 @@
 package com.socialplatformapi.service;
 
+import com.socialplatformapi.exception.ErrorCode;
 import com.socialplatformapi.exception.like.LikeException;
 import com.socialplatformapi.exception.post.PostException;
 import com.socialplatformapi.model.Like;
@@ -22,10 +23,12 @@ public class LikeService {
 
     public void likePost(Long postId, User user) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new PostException("Post with id " + postId + " does not exist"));
+                .orElseThrow(() -> new PostException(ErrorCode.POST_NOT_FOUND, 
+                    "Post with id " + postId + " does not exist"));
 
         if (likeRepository.existsLikeByPostIdAndUserId(post.getId(), user.getId())) {
-            throw new LikeException("Post with id " + post.getId() + " is already liked by user " + user.getUsername());
+            throw new LikeException(ErrorCode.LIKE_ALREADY_EXISTS, 
+                "Post is already liked by user " + user.getUsername());
         }
 
         Like like = new Like();

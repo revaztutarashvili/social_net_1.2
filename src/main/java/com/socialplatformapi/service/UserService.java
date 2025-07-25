@@ -3,6 +3,7 @@ package com.socialplatformapi.service;
 import com.socialplatformapi.dto.auth.UserLoginRequest;
 import com.socialplatformapi.dto.register.UserRegisterRequest;
 import com.socialplatformapi.dto.user.UserSummary;
+import com.socialplatformapi.exception.ErrorCode;
 import com.socialplatformapi.exception.auth.AuthenticationException;
 import com.socialplatformapi.exception.user.RegistrationException;
 import com.socialplatformapi.model.User;
@@ -23,11 +24,13 @@ public class UserService {
 
     public void registerUser(UserRegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RegistrationException("Username '" + request.getUsername() + "' is already in use");
+            throw new RegistrationException(ErrorCode.USER_USERNAME_EXISTS, 
+                "Username '" + request.getUsername() + "' is already in use");
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RegistrationException("Email '" + request.getEmail() + "' is already in use");
+            throw new RegistrationException(ErrorCode.USER_EMAIL_EXISTS, 
+                "Email '" + request.getEmail() + "' is already in use");
         }
 
         User user = new User();
@@ -44,10 +47,10 @@ public class UserService {
 
     public String login(UserLoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new AuthenticationException("Invalid email or password"));
+                .orElseThrow(() -> new AuthenticationException(ErrorCode.AUTH_INVALID_CREDENTIALS));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new AuthenticationException("Invalid email or password");
+            throw new AuthenticationException(ErrorCode.AUTH_INVALID_CREDENTIALS);
         }
 
         return sessionService.createSession(user);
