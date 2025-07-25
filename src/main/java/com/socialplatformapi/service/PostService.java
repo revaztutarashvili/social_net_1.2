@@ -4,6 +4,7 @@ import com.socialplatformapi.dto.comment.CommentResponse;
 import com.socialplatformapi.dto.comment.CommentSummary;
 import com.socialplatformapi.dto.post.PostRequest;
 import com.socialplatformapi.dto.post.PostResponse;
+import com.socialplatformapi.exception.ErrorCode;
 import com.socialplatformapi.exception.post.PostException;
 import com.socialplatformapi.model.Post;
 import com.socialplatformapi.model.User;
@@ -60,11 +61,13 @@ public class PostService {
     public Post getPost(Long postId, User user) {
         Optional<Post> postOptional = postRepository.findById(postId);
         if (postOptional.isEmpty()) {
-            throw new PostException("Post with id " + postId + " does not exist");
+            throw new PostException(ErrorCode.POST_NOT_FOUND, 
+                "Post with id " + postId + " does not exist");
         }
         Post post = postOptional.get();
         if (!post.getPoster().getId().equals(user.getId())) {
-            throw new PostException("You are not the author of this post");
+            throw new PostException(ErrorCode.POST_ACCESS_DENIED, 
+                "You are not authorized to modify this post");
         }
         return post;
     }
@@ -72,7 +75,8 @@ public class PostService {
     public PostResponse getPostResponse(Long postId, Pageable commentPageable, Pageable likesPageable) {
         Optional<Post> postOptional = postRepository.findById(postId);
         if (postOptional.isEmpty()) {
-            throw new PostException("Post with id " + postId + " does not exist");
+            throw new PostException(ErrorCode.POST_NOT_FOUND, 
+                "Post with id " + postId + " does not exist");
         }
         Post post = postOptional.get();
 

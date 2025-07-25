@@ -4,6 +4,7 @@ import com.socialplatformapi.dto.comment.CommentRequest;
 import com.socialplatformapi.dto.comment.CommentResponse;
 import com.socialplatformapi.dto.comment.CommentSummary;
 import com.socialplatformapi.dto.comment.CommentUpdateRequest;
+import com.socialplatformapi.exception.ErrorCode;
 import com.socialplatformapi.exception.comment.CommentException;
 import com.socialplatformapi.exception.post.PostException;
 import com.socialplatformapi.model.Comment;
@@ -26,7 +27,8 @@ public class CommentService {
 
     public CommentResponse addComment(CommentRequest request, User user) {
         Post post = postRepository.findById(request.getPostId())
-                .orElseThrow(() -> new PostException("Post with id " + request.getPostId() + " does not exist"));
+                .orElseThrow(() -> new PostException(ErrorCode.POST_NOT_FOUND, 
+                    "Post with id " + request.getPostId() + " does not exist"));
 
         Comment comment = new Comment();
         comment.setCommentText(request.getText());
@@ -51,13 +53,15 @@ public class CommentService {
 
     public void deleteComment(Long commentId, User user) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentException("comment with id " + commentId + " not found"));
+                .orElseThrow(() -> new CommentException(ErrorCode.COMMENT_NOT_FOUND, 
+                    "Comment with id " + commentId + " not found"));
 
         boolean isAuthorOfComment = comment.getCommenter().getId().equals(user.getId());
         boolean isPostOwner = comment.getPost().getPoster().getId().equals(user.getId());
 
         if (!isAuthorOfComment && !isPostOwner) {
-            throw new PostException("You are not the author of this post");
+            throw new CommentException(ErrorCode.COMMENT_ACCESS_DENIED, 
+                "You are not authorized to delete this comment");
         }
 
         comment.getPost().getComments().remove(comment);
@@ -67,10 +71,12 @@ public class CommentService {
 
     public Comment getComment(Long commentId, User user) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentException("comment with id " + commentId + " not found"));
+                .orElseThrow(() -> new CommentException(ErrorCode.COMMENT_NOT_FOUND, 
+                    "Comment with id " + commentId + " not found"));
 
         if (!comment.getCommenter().getId().equals(user.getId())) {
-            throw new PostException("You are not the author of this post");
+            throw new CommentException(ErrorCode.COMMENT_ACCESS_DENIED, 
+                "You are not authorized to access this comment");
         }
         return comment;
     }
