@@ -2,7 +2,7 @@
 
 This project is a RESTful API for a social networking platform, built using the Spring Boot framework. The application allows users to register, log in, create and manage posts, add comments, and like various posts.
 
-## 🚀 Key Features
+## Features
 
 * **User Management**: Registration, authentication, and logout functionalities.
 * **Post Management**: Create, read, update, and delete posts.
@@ -12,7 +12,7 @@ This project is a RESTful API for a social networking platform, built using the 
 * **External Service Integration**: Imports users from the [reqres.in](https://reqres.in/) service upon application startup.
 * **API Documentation**: Integrated with Swagger/OpenAPI for easy viewing and testing of API endpoints.
 
-## 🛠️ Technologies Used
+## Technologies
 
 * **Java 17**
 * **Spring Boot 3.5.3**
@@ -25,7 +25,7 @@ This project is a RESTful API for a social networking platform, built using the 
 * **Springdoc OpenAPI (Swagger)**: For automatic API documentation generation.
 * **Maven**: For project build and dependency management.
 
-## 📖 API Endpoints
+## API Endpoints
 
 The complete API documentation is available at `/swagger-ui.html` after the application is started.
 
@@ -55,7 +55,7 @@ The complete API documentation is available at `/swagger-ui.html` after the appl
 * `GET /comments/by-post/{postId}`: Retrieves comments for a specific post.
 * `GET /comments/by-user/{username}`: Retrieves comments by a specific user.
 
-## ⚙️ Setup and Running
+## Setup
 
 ### Prerequisites
 
@@ -76,10 +76,3 @@ The complete API documentation is available at `/swagger-ui.html` after the appl
         password: your_password
     ```
 3.  The JPA `ddl-auto` property is currently set to `create`, which means the database schema will be recreated on every startup. For a production environment, it is recommended to change this to `validate` or `update`.
-
-### Running the Application
-
-To run the project, execute the following Maven command in the root directory:
-
-```bash
-mvn spring-boot:run
